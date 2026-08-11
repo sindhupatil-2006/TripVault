@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import api from '../api';
 
 const AuthContext = createContext();
@@ -7,6 +7,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(null);
+  const toastTimeoutRef = useRef(null);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -30,6 +31,22 @@ export const AuthProvider = ({ children }) => {
     loadUser();
   }, []);
 
+  useEffect(() => {
+    if (!toast) {
+      return undefined;
+    }
+
+    toastTimeoutRef.current = window.setTimeout(() => {
+      setToast(null);
+    }, 2500);
+
+    return () => {
+      if (toastTimeoutRef.current) {
+        window.clearTimeout(toastTimeoutRef.current);
+      }
+    };
+  }, [toast]);
+
   const login = async (email, password) => {
     const response = await api.post('/auth/login', { email, password });
     localStorage.setItem('tripvault_token', response.data.token);
@@ -50,7 +67,12 @@ export const AuthProvider = ({ children }) => {
     setToast({ message: 'You have been logged out', type: 'info' });
   };
 
-  const clearToast = () => setToast(null);
+  const clearToast = () => {
+    if (toastTimeoutRef.current) {
+      window.clearTimeout(toastTimeoutRef.current);
+    }
+    setToast(null);
+  };
 
   const value = useMemo(() => ({
     user,
