@@ -44,7 +44,7 @@ const createTrip = async (req, res, next) => {
     if (rating !== undefined && rating !== null) tripData.rating = Number(rating);
 
     const trip = await Trip.create(tripData);
-    res.status(201).json({ success: true, trip });
+    res.status(201).json({ success: true, trip, _id: trip._id, coverImage: trip.coverImage, photos: trip.photos });
   } catch (error) {
     next(error);
   }
@@ -77,7 +77,7 @@ const getTripById = async (req, res, next) => {
       return res.status(403).json({ success: false, message: 'You are not authorized to view this trip' });
     }
 
-    res.status(200).json({ success: true, trip });
+    res.status(200).json({ success: true, trip, coverImage: trip.coverImage, photos: trip.photos });
   } catch (error) {
     next(error);
   }
@@ -159,4 +159,59 @@ const deleteTrip = async (req, res, next) => {
   }
 };
 
-module.exports = { createTrip, getTrips, getTripById, updateTrip, deleteTrip };
+const uploadTripPhoto = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({ success: false, message: 'Invalid trip ID' });
+    }
+
+    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+      return res.status(500).json({ success: false, message: 'Cloudinary is not configured. Add valid CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET before uploading images.' });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Please provide an image file.' });
+    }
+
+    const trip = await Trip.findById(id);
+    if (!trip) {
+      return res.status(404).json({ success: false, message: 'Trip not found' });
+    }
+
+    if (trip.user.toString() !== req.user.id) {
+      return res.status(403).json({ success: false, message: 'You are not authorized to upload photos for this trip' });
+    }
+
+    const imageUrl = req.file.path || req.file.secure_url || req.file.url;
+    if (!imageUrl) {
+      return res.status(400).json({ success: false, message: 'Image upload failed. Please try again.' });
+    }
+
+    trip.photos = Array.isArray(trip.photos) ? trip.photos : [];
+    const normalizedPhotos = [...trip.photos];
+    if (!normalizedPhotos.includes(imageUrl)) {
+      normalizedPhotos.push(imageUrl);
+    }
+    trip.photos = normalizedPhotos;
+
+    if (!trip.coverImage) {
+      trip.coverImage = imageUrl;
+    }
+
+    const updatedTrip = await trip.save();
+
+    return res.status(200).json({
+      success: true,
+      message: 'Photo uploaded successfully.',
+      coverImage: updatedTrip.coverImage,
+      photos: updatedTrip.photos,
+      trip: updatedTrip,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { createTrip, getTrips, getTripById, updateTrip, deleteTrip, uploadTripPhoto };

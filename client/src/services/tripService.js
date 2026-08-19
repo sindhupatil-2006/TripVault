@@ -24,3 +24,16 @@ export const deleteTrip = async (id) => {
   const response = await api.delete(`/trips/${id}`);
   return response.data;
 };
+
+export const uploadTripPhoto = async (tripId, file) => {
+  const formData = new FormData();
+  formData.append('image', file);
+
+  const response = await api.post(`/trips/${tripId}/upload`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+
+  return response.data;
+};
