@@ -27,7 +27,8 @@ a {
 
 button,
 input,
-select {
+select,
+textarea {
   font: inherit;
 }
 
@@ -325,6 +326,35 @@ h2 {
   display: flex;
   flex-direction: column;
   gap: 0.65rem;
+  overflow: hidden;
+}
+
+.trip-card-cover {
+  width: 100%;
+  height: 180px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: rgba(148, 163, 184, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.trip-card-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.trip-card-placeholder {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  color: #cbd5e1;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
 }
 
 .trip-card-top {
@@ -357,6 +387,149 @@ h2 {
   flex-wrap: wrap;
 }
 
+.profile-form {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.profile-form textarea {
+  min-height: 120px;
+  resize: vertical;
+  padding: 0.9rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+}
+
+.image-preview-box {
+  width: 100%;
+  max-height: 220px;
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.12);
+  margin-top: 0.75rem;
+}
+
+.image-preview-box img {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  display: block;
+}
+
+.profile-shell,
+.detail-shell {
+  place-items: start center;
+  padding-top: 2rem;
+}
+
+.profile-card,
+.detail-card {
+  width: min(100%, 980px);
+}
+
+.profile-header,
+.detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.profile-username {
+  color: #93c5fd;
+  font-weight: 600;
+  margin: 0;
+}
+
+.profile-bio {
+  color: #e2e8f0;
+  margin: 1.25rem 0 1.5rem;
+  line-height: 1.7;
+}
+
+.profile-section-header h3,
+.detail-gallery-section h3 {
+  margin-bottom: 1rem;
+}
+
+.profile-trip-grid,
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.profile-trip-card,
+.photo-tile {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.profile-trip-image,
+.photo-tile img {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  display: block;
+}
+
+.profile-trip-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 220px;
+  background: rgba(148, 163, 184, 0.18);
+  color: #fff;
+  font-size: 2rem;
+}
+
+.profile-trip-content {
+  padding: 1rem;
+}
+
+.profile-trip-content h4 {
+  margin: 0 0 0.5rem;
+}
+
+.profile-trip-meta,
+.detail-meta p {
+  margin: 0.35rem 0;
+  color: #cbd5e1;
+}
+
+.detail-cover-wrap {
+  width: 100%;
+  border-radius: 18px;
+  overflow: hidden;
+  margin: 1rem 0;
+}
+
+.detail-cover {
+  width: 100%;
+  max-height: 360px;
+  object-fit: cover;
+  display: block;
+}
+
+.detail-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.detail-description {
+  margin-bottom: 1.5rem;
+}
+
 @media (max-width: 640px) {
   .navbar {
     padding: 1rem;
@@ -377,7 +550,16 @@ h2 {
   }
 
   .form-grid,
-  .trip-grid {
+  .trip-grid,
+  .profile-trip-grid,
+  .photo-grid,
+  .detail-meta {
     grid-template-columns: 1fr;
+  }
+
+  .profile-header,
+  .detail-header {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }

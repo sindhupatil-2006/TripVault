@@ -6,6 +6,8 @@ import HomePage from './pages/Home';
 import LoginPage from './pages/Login';
 import RegisterPage from './pages/Register';
 import DashboardPage from './pages/Dashboard';
+import ProfilePage from './pages/ProfilePage';
+import TripDetailPage from './pages/TripDetailPage';
 import NotFoundPage from './pages/NotFound';
 import { useAuth } from './context/AuthContext';
 import Toast from './components/Toast';
@@ -24,11 +26,20 @@ export default function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/profile/:username" element={<ProfilePage />} />
         <Route
           path="/dashboard"
           element={
             <ProtectedRoute>
               <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/trip/:id"
+          element={
+            <ProtectedRoute>
+              <TripDetailPage />
             </ProtectedRoute>
           }
         />

@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Button from '../components/Button';
-import { createTrip, deleteTrip, getTrips, updateTrip } from '../services/tripService';
+import { createTrip, deleteTrip, getTrips, updateTrip, uploadTripPhoto } from '../services/tripService';
+import { updateUserProfile } from '../services/userService';
 
 const initialForm = {
   title: '',
@@ -40,13 +42,20 @@ const formatDisplayDate = (value) => {
 };
 
 const DashboardPage = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
+  const navigate = useNavigate();
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
   const [form, setForm] = useState(initialForm);
   const [editingId, setEditingId] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
+  const [imageError, setImageError] = useState('');
+  const [profileForm, setProfileForm] = useState({ username: user?.username || '', bio: user?.bio || '' });
+  const [profileEditing, setProfileEditing] = useState(false);
+  const [profileSubmitting, setProfileSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [showForm, setShowForm] = useState(false);
@@ -68,6 +77,18 @@ const DashboardPage = () => {
     loadTrips();
   }, []);
 
+  useEffect(() => {
+    setProfileForm({ username: user?.username || '', bio: user?.bio || '' });
+  }, [user]);
+
+  useEffect(() => {
+    return () => {
+      if (imagePreview) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview]);
+
   const handleChange = (event) => {
     const { name, value } = event.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -77,6 +98,43 @@ const DashboardPage = () => {
     setForm(initialForm);
     setEditingId(null);
     setShowForm(false);
+    if (imagePreview) {
+      URL.revokeObjectURL(imagePreview);
+    }
+    setImageFile(null);
+    setImagePreview('');
+    setImageError('');
+  };
+
+  const handleImageSelection = (event) => {
+    const selectedFile = event.target.files?.[0];
+    if (!selectedFile) {
+      return;
+    }
+
+    const isValidType = selectedFile.type.startsWith('image/');
+    const isValidSize = selectedFile.size <= 5 * 1024 * 1024;
+
+    if (!isValidType) {
+      setImageError('Please choose a valid image file.');
+      event.target.value = '';
+      return;
+    }
+
+    if (!isValidSize) {
+      setImageError('Please choose an image under 5MB.');
+      event.target.value = '';
+      return;
+    }
+
+    if (imagePreview) {
+      URL.revokeObjectURL(imagePreview);
+    }
+
+    const previewUrl = URL.createObjectURL(selectedFile);
+    setImageFile(selectedFile);
+    setImagePreview(previewUrl);
+    setImageError('');
   };
 
   const validateForm = () => {
@@ -98,8 +156,10 @@ const DashboardPage = () => {
     try {
       setSubmitting(true);
       setError('');
+
+      let tripResult;
       if (editingId) {
-        await updateTrip(editingId, {
+        tripResult = await updateTrip(editingId, {
           title: form.title,
           destination: form.destination,
           startDate: form.startDate || null,
@@ -109,7 +169,7 @@ const DashboardPage = () => {
         });
         setSuccess('Trip updated successfully.');
       } else {
-        await createTrip({
+        tripResult = await createTrip({
           title: form.title,
           destination: form.destination,
           startDate: form.startDate || null,
@@ -119,6 +179,15 @@ const DashboardPage = () => {
         });
         setSuccess('Trip created successfully.');
       }
+
+      const tripPayload = tripResult?.trip || tripResult;
+      const tripId = editingId || tripPayload?._id;
+
+      if (imageFile && tripId) {
+        await uploadTripPhoto(tripId, imageFile);
+        setSuccess(editingId ? 'Trip updated and image uploaded successfully.' : 'Trip created and image uploaded successfully.');
+      }
+
       await loadTrips();
       resetForm();
     } catch (err) {
@@ -138,9 +207,17 @@ const DashboardPage = () => {
       description: trip.description || '',
       rating: String(trip.rating || 5),
     });
+    if (trip.coverImage) {
+      setImagePreview(trip.coverImage);
+      setImageFile(null);
+    } else {
+      setImagePreview('');
+      setImageFile(null);
+    }
     setShowForm(true);
     setSuccess('');
     setError('');
+    setImageError('');
   };
 
   const handleDelete = async (tripId) => {
@@ -160,6 +237,30 @@ const DashboardPage = () => {
     }
   };
 
+  const handleProfileChange = (event) => {
+    const { name, value } = event.target;
+    setProfileForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleProfileSubmit = async (event) => {
+    event.preventDefault();
+    try {
+      setProfileSubmitting(true);
+      setError('');
+      const response = await updateUserProfile({
+        username: profileForm.username,
+        bio: profileForm.bio,
+      });
+      updateUser(response.user);
+      setProfileEditing(false);
+      setSuccess('Profile updated successfully.');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Unable to update your profile.');
+    } finally {
+      setProfileSubmitting(false);
+    }
+  };
+
   const tripCountLabel = useMemo(() => `${trips.length} trip${trips.length === 1 ? '' : 's'}`, [trips.length]);
 
   return (
@@ -172,12 +273,37 @@ const DashboardPage = () => {
             <p className="muted">You currently have {tripCountLabel} saved.</p>
           </div>
           <div className="dashboard-actions">
-            <Button onClick={() => { setShowForm((prev) => !prev); setEditingId(null); setForm(initialForm); setError(''); setSuccess(''); }} className="btn-primary">
+            {user?.username && (
+              <Link to={`/profile/${user.username}`} className="btn btn-secondary">
+                My Profile
+              </Link>
+            )}
+            <Button onClick={() => setProfileEditing((prev) => !prev)} className="btn-secondary">
+              {profileEditing ? 'Close profile' : 'Edit Profile'}
+            </Button>
+            <Button onClick={() => { setShowForm((prev) => !prev); setEditingId(null); setForm(initialForm); setError(''); setSuccess(''); setImageError(''); setImageFile(null); setImagePreview(''); }} className="btn-primary">
               {showForm ? 'Close form' : 'Create Trip'}
             </Button>
             <Button onClick={logout} className="btn-secondary">Logout</Button>
           </div>
         </div>
+
+        {profileEditing && (
+          <form onSubmit={handleProfileSubmit} className="profile-form card-inner">
+            <div className="input-group">
+              <label htmlFor="profile-username">Username</label>
+              <input id="profile-username" name="username" value={profileForm.username} onChange={handleProfileChange} placeholder="your-username" />
+            </div>
+            <div className="input-group">
+              <label htmlFor="profile-bio">Bio</label>
+              <textarea id="profile-bio" name="bio" rows="3" value={profileForm.bio} onChange={handleProfileChange} placeholder="Tell travelers about your adventures." />
+            </div>
+            <div className="form-actions">
+              <Button type="submit" className="btn-primary" disabled={profileSubmitting}>{profileSubmitting ? 'Saving...' : 'Save profile'}</Button>
+              <Button type="button" onClick={() => setProfileEditing(false)} className="btn-secondary">Cancel</Button>
+            </div>
+          </form>
+        )}
 
         {error && <div className="status-banner error-banner">{error}</div>}
         {success && <div className="status-banner success-banner">{success}</div>}
@@ -215,6 +341,16 @@ const DashboardPage = () => {
                   <option value="5">5</option>
                 </select>
               </div>
+              <div className="input-group full-width">
+                <label htmlFor="trip-image">Trip photo</label>
+                <input id="trip-image" type="file" accept="image/*" onChange={handleImageSelection} />
+                {imageError && <span className="error-text">{imageError}</span>}
+                {imagePreview && (
+                  <div className="image-preview-box">
+                    <img src={imagePreview} alt="Trip preview" />
+                  </div>
+                )}
+              </div>
             </div>
             <div className="form-actions">
               <Button type="submit" className="btn-primary" disabled={submitting}>{submitting ? 'Saving...' : editingId ? 'Update Trip' : 'Create Trip'}</Button>
@@ -234,6 +370,19 @@ const DashboardPage = () => {
           <div className="trip-grid">
             {trips.map((trip) => (
               <article key={trip._id} className="trip-card">
+                {trip.coverImage && (
+                  <div className="trip-card-cover has-image">
+                    <img src={trip.coverImage} alt={trip.title} />
+                  </div>
+                )}
+                {!trip.coverImage && (
+                  <div className="trip-card-cover placeholder">
+                    <div className="trip-card-placeholder">
+                      <span>📷</span>
+                      <small>No cover image</small>
+                    </div>
+                  </div>
+                )}
                 <div className="trip-card-top">
                   <div>
                     <h3>{trip.title}</h3>
@@ -246,6 +395,7 @@ const DashboardPage = () => {
                 </p>
                 <p className="trip-description">{trip.description || 'A memorable trip to remember.'}</p>
                 <div className="trip-actions">
+                  <Button onClick={() => navigate(`/trip/${trip._id}`)} className="btn-secondary">View</Button>
                   <Button onClick={() => handleEdit(trip)} className="btn-secondary">Edit</Button>
                   <Button onClick={() => handleDelete(trip._id)} className="btn-secondary" disabled={deletingId === trip._id}>
                     {deletingId === trip._id ? 'Deleting...' : 'Delete'}

@@ -61,6 +61,10 @@ export const AuthProvider = ({ children }) => {
     return response.data;
   };
 
+  const updateUser = (nextUser) => {
+    setUser((currentUser) => ({ ...currentUser, ...nextUser }));
+  };
+
   const logout = () => {
     localStorage.removeItem('tripvault_token');
     setUser(null);
@@ -80,6 +84,7 @@ export const AuthProvider = ({ children }) => {
     toast,
     login,
     register,
+    updateUser,
     logout,
     clearToast,
   }), [user, loading, toast]);
