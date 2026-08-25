@@ -42,7 +42,7 @@ const formatDisplayDate = (value) => {
 };
 
 const DashboardPage = () => {
-  const { user, logout, updateUser } = useAuth();
+  const { user, logout, updateUser, showToast } = useAuth();
   const navigate = useNavigate();
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -158,6 +158,7 @@ const DashboardPage = () => {
       setError('');
 
       let tripResult;
+      const successMessage = editingId ? 'Trip updated successfully!' : 'Trip created successfully!';
       if (editingId) {
         tripResult = await updateTrip(editingId, {
           title: form.title,
@@ -167,7 +168,6 @@ const DashboardPage = () => {
           description: form.description,
           rating: Number(form.rating),
         });
-        setSuccess('Trip updated successfully.');
       } else {
         tripResult = await createTrip({
           title: form.title,
@@ -177,7 +177,6 @@ const DashboardPage = () => {
           description: form.description,
           rating: Number(form.rating),
         });
-        setSuccess('Trip created successfully.');
       }
 
       const tripPayload = tripResult?.trip || tripResult;
@@ -185,13 +184,20 @@ const DashboardPage = () => {
 
       if (imageFile && tripId) {
         await uploadTripPhoto(tripId, imageFile);
-        setSuccess(editingId ? 'Trip updated and image uploaded successfully.' : 'Trip created and image uploaded successfully.');
+        const imgSuccessMsg = editingId ? 'Trip updated & photo uploaded!' : 'Trip created & photo uploaded!';
+        setSuccess(imgSuccessMsg);
+        showToast(imgSuccessMsg, 'success');
+      } else {
+        setSuccess(successMessage);
+        showToast(successMessage, 'success');
       }
 
       await loadTrips();
       resetForm();
     } catch (err) {
-      setError(err.response?.data?.message || 'Unable to save your trip.');
+      const errMsg = err.response?.data?.message || 'Unable to save your trip.';
+      setError(errMsg);
+      showToast(errMsg, 'error');
     } finally {
       setSubmitting(false);
     }
@@ -229,9 +235,12 @@ const DashboardPage = () => {
       setError('');
       await deleteTrip(tripId);
       setSuccess('Trip deleted successfully.');
+      showToast('Trip deleted successfully', 'success');
       await loadTrips();
     } catch (err) {
-      setError(err.response?.data?.message || 'Unable to delete this trip.');
+      const errMsg = err.response?.data?.message || 'Unable to delete this trip.';
+      setError(errMsg);
+      showToast(errMsg, 'error');
     } finally {
       setDeletingId(null);
     }
@@ -254,8 +263,11 @@ const DashboardPage = () => {
       updateUser(response.user);
       setProfileEditing(false);
       setSuccess('Profile updated successfully.');
+      showToast('Profile updated successfully!', 'success');
     } catch (err) {
-      setError(err.response?.data?.message || 'Unable to update your profile.');
+      const errMsg = err.response?.data?.message || 'Unable to update your profile.';
+      setError(errMsg);
+      showToast(errMsg, 'error');
     } finally {
       setProfileSubmitting(false);
     }
@@ -360,11 +372,18 @@ const DashboardPage = () => {
         )}
 
         {loading ? (
-          <div className="loader-inline">Loading your trips…</div>
+          <div className="loader-inline">
+            <div className="spinner-small" />
+            <span>Loading your trips…</span>
+          </div>
         ) : trips.length === 0 ? (
           <div className="empty-state">
-            <h3>No trips yet.</h3>
-            <p>Start creating your travel memories!</p>
+            <span className="empty-state-icon">🌴</span>
+            <h3>You haven't added any trips yet.</h3>
+            <p>Start your journey by capturing your first travel memory!</p>
+            <Button onClick={() => setShowForm(true)} className="btn-primary empty-state-btn">
+              ➕ Create your first trip
+            </Button>
           </div>
         ) : (
           <div className="trip-grid">

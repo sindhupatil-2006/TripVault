@@ -78,6 +78,13 @@ export const AuthProvider = ({ children }) => {
     setToast(null);
   };
 
+  const showToast = (message, type = 'info') => {
+    if (toastTimeoutRef.current) {
+      window.clearTimeout(toastTimeoutRef.current);
+    }
+    setToast({ message, type });
+  };
+
   const value = useMemo(() => ({
     user,
     loading,
@@ -87,6 +94,7 @@ export const AuthProvider = ({ children }) => {
     updateUser,
     logout,
     clearToast,
+    showToast,
   }), [user, loading, toast]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

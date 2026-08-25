@@ -7,7 +7,7 @@ import { useAuth } from '../context/AuthContext';
 const RegisterPage = () => {
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [errors, setErrors] = useState({});
-  const { register } = useAuth();
+  const { register, showToast } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (event) => {
@@ -38,7 +38,9 @@ const RegisterPage = () => {
       await register(form.name, form.email, form.password);
       navigate('/login');
     } catch (error) {
-      setErrors({ form: error.response?.data?.message || 'Registration failed' });
+      const msg = error.response?.data?.message || 'Registration failed';
+      setErrors({ form: msg });
+      showToast(msg, 'error');
     }
   };
 

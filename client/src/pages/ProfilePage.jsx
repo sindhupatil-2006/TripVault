@@ -32,7 +32,10 @@ const ProfilePage = () => {
     return (
       <div className="page-shell">
         <div className="card profile-card">
-          <div className="loader-inline">Loading profile…</div>
+          <div className="loader-inline">
+            <div className="spinner-small" />
+            <span>Loading traveler profile…</span>
+          </div>
         </div>
       </div>
     );

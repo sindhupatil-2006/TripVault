@@ -7,7 +7,7 @@ import { useAuth } from '../context/AuthContext';
 const LoginPage = () => {
   const [form, setForm] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
-  const { login } = useAuth();
+  const { login, showToast } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (event) => {
@@ -36,7 +36,9 @@ const LoginPage = () => {
       await login(form.email, form.password);
       navigate('/dashboard');
     } catch (error) {
-      setErrors({ form: error.response?.data?.message || 'Login failed' });
+      const msg = error.response?.data?.message || 'Login failed';
+      setErrors({ form: msg });
+      showToast(msg, 'error');
     }
   };
 

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { getTrip, uploadTripPhoto } from '../services/tripService';
+import { useAuth } from '../context/AuthContext';
 
 const formatDate = (value) => {
   if (!value) return 'TBD';
@@ -17,6 +18,7 @@ const formatDate = (value) => {
 
 const TripDetailPage = () => {
   const { id } = useParams();
+  const { showToast } = useAuth();
   const [trip, setTrip] = useState(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -30,7 +32,9 @@ const TripDetailPage = () => {
       const response = await getTrip(id);
       setTrip(response.trip || response);
     } catch (err) {
-      setError(err.response?.data?.message || 'Unable to load this trip.');
+      const msg = err.response?.data?.message || 'Unable to load this trip.';
+      setError(msg);
+      showToast(msg, 'error');
     } finally {
       setLoading(false);
     }
@@ -47,12 +51,16 @@ const TripDetailPage = () => {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      setError('Please choose a valid image file.');
+      const msg = 'Please choose a valid image file.';
+      setError(msg);
+      showToast(msg, 'error');
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      setError('File size must be 5MB or less.');
+      const msg = 'File size must be 5MB or less.';
+      setError(msg);
+      showToast(msg, 'error');
       return;
     }
 
@@ -62,13 +70,16 @@ const TripDetailPage = () => {
       setSuccess('');
       const response = await uploadTripPhoto(id, file);
       setSuccess('Photo uploaded successfully!');
+      showToast('Photo uploaded successfully!', 'success');
       if (response.trip) {
         setTrip(response.trip);
       } else {
         await fetchTrip();
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to upload photo.');
+      const msg = err.response?.data?.message || 'Failed to upload photo.';
+      setError(msg);
+      showToast(msg, 'error');
     } finally {
       setUploading(false);
       event.target.value = '';
