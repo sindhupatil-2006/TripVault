@@ -7,7 +7,7 @@ const Footer = () => {
         <p>
           TripVault &copy; {new Date().getFullYear()} &bull; Built with 💙 by{' '}
           <a
-            href="https://github.com"
+            href="https://github.com/sindhupatil-2006/TripVault"
             target="_blank"
             rel="noopener noreferrer"
             className="footer-link"

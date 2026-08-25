@@ -36,6 +36,7 @@ const LoginPage = () => {
       await login(form.email, form.password);
       navigate('/dashboard');
     } catch (error) {
+      console.error('Login error:', error);
       const msg = error.response?.data?.message || (error.code === 'ERR_NETWORK' || error.message === 'Network Error' ? 'Cannot connect to backend server. Please verify VITE_API_URL on Vercel.' : 'Login failed');
       setErrors({ form: msg });
       showToast(msg, 'error');

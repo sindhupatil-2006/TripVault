@@ -13,7 +13,41 @@ const { errorHandler } = require('./middleware/errorMiddleware');
 const app = express();
 const PORT = Number(process.env.PORT || 5000);
 
-app.use(cors());
+const allowedOrigins = [
+  'https://tripvault-client.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://localhost:5000',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:5000',
+];
+
+if (process.env.CLIENT_URL) {
+  allowedOrigins.push(process.env.CLIENT_URL.trim().replace(/\/+$/, ''));
+}
+if (process.env.FRONTEND_URL) {
+  allowedOrigins.push(process.env.FRONTEND_URL.trim().replace(/\/+$/, ''));
+}
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    const cleanOrigin = origin.trim().replace(/\/+$/, '');
+    if (
+      allowedOrigins.includes(cleanOrigin) ||
+      /\.vercel\.app$/.test(cleanOrigin) ||
+      process.env.NODE_ENV !== 'production'
+    ) {
+      return callback(null, true);
+    }
+    return callback(new Error('CORS policy error: Origin not allowed.'));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
