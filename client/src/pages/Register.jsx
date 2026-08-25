@@ -38,7 +38,7 @@ const RegisterPage = () => {
       await register(form.name, form.email, form.password);
       navigate('/login');
     } catch (error) {
-      const msg = error.response?.data?.message || 'Registration failed';
+      const msg = error.response?.data?.message || (error.code === 'ERR_NETWORK' || error.message === 'Network Error' ? 'Cannot connect to backend server. Please verify VITE_API_URL on Vercel.' : 'Registration failed');
       setErrors({ form: msg });
       showToast(msg, 'error');
     }
