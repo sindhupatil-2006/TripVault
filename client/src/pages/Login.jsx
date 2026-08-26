@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Input from '../components/Input';
 import Button from '../components/Button';
@@ -8,8 +8,14 @@ const LoginPage = () => {
   const [form, setForm] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
-  const { login, showToast } = useAuth();
+  const { user, login, showToast } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, navigate]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -37,7 +43,7 @@ const LoginPage = () => {
       setSubmitting(true);
       setErrors({});
       await login(form.email, form.password);
-      navigate('/dashboard');
+      navigate('/dashboard', { replace: true });
     } catch (error) {
       console.error('Login error:', error);
       const msg = error.response?.data?.message || (error.code === 'ERR_NETWORK' || error.message === 'Network Error' ? 'Backend server is starting up or unreachable. Please wait a few seconds and try again.' : 'Login failed');

@@ -49,15 +49,18 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     const response = await api.post('/auth/login', { email, password });
-    localStorage.setItem('tripvault_token', response.data.token);
-    setUser(response.data.user);
-    setToast({ message: 'Login successful', type: 'success' });
-    return response.data;
+    if (response.data && response.data.token) {
+      localStorage.setItem('tripvault_token', response.data.token);
+      setUser(response.data.user);
+      setToast({ message: 'Login successful', type: 'success' });
+      return response.data;
+    }
+    throw new Error('Invalid login response from server');
   };
 
   const register = async (name, email, password) => {
     const response = await api.post('/auth/register', { name, email, password });
-    setToast({ message: response.data.message, type: 'success' });
+    setToast({ message: response.data.message || 'Registration successful', type: 'success' });
     return response.data;
   };
 
