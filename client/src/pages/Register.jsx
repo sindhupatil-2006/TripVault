@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 const RegisterPage = () => {
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [errors, setErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
   const { register, showToast } = useAuth();
   const navigate = useNavigate();
 
@@ -35,13 +36,17 @@ const RegisterPage = () => {
     }
 
     try {
+      setSubmitting(true);
+      setErrors({});
       await register(form.name, form.email, form.password);
       navigate('/login');
     } catch (error) {
       console.error('Registration error:', error);
-      const msg = error.response?.data?.message || (error.code === 'ERR_NETWORK' || error.message === 'Network Error' ? 'Cannot connect to backend server. Please verify VITE_API_URL on Vercel.' : 'Registration failed');
+      const msg = error.response?.data?.message || (error.code === 'ERR_NETWORK' || error.message === 'Network Error' ? 'Backend server is starting up or unreachable. Please wait a few seconds and try again.' : 'Registration failed');
       setErrors({ form: msg });
       showToast(msg, 'error');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -51,11 +56,13 @@ const RegisterPage = () => {
         <h2>Create your account</h2>
         <p className="muted">Join TripVault and start planning your memories.</p>
         <form onSubmit={handleSubmit} className="form-stack">
-          <Input label="Name" name="name" value={form.name} onChange={handleChange} error={errors.name} />
-          <Input label="Email" name="email" type="email" value={form.email} onChange={handleChange} error={errors.email} />
-          <Input label="Password" name="password" type="password" value={form.password} onChange={handleChange} error={errors.password} />
-          {errors.form && <span className="error-text">{errors.form}</span>}
-          <Button type="submit" className="btn-primary">Register</Button>
+          <Input label="Name" name="name" value={form.name} onChange={handleChange} error={errors.name} placeholder="John Doe" />
+          <Input label="Email" name="email" type="email" value={form.email} onChange={handleChange} error={errors.email} placeholder="traveler@example.com" />
+          <Input label="Password" name="password" type="password" value={form.password} onChange={handleChange} error={errors.password} placeholder="••••••••" />
+          {errors.form && <div className="status-banner error-banner">{errors.form}</div>}
+          <Button type="submit" className="btn-primary" disabled={submitting}>
+            {submitting ? 'Registering…' : 'Register'}
+          </Button>
         </form>
         <p className="switch-copy">
           Already have an account? <Link to="/login">Login</Link>
