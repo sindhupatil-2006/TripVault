@@ -3,11 +3,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import Input from '../components/Input';
 import Button from '../components/Button';
 import { useAuth } from '../context/AuthContext';
+import { executeWithColdStartRetry } from '../utils/coldStartHelper';
 
 const LoginPage = () => {
   const [form, setForm] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('');
   const { user, login, showToast } = useAuth();
   const navigate = useNavigate();
 
@@ -42,7 +44,13 @@ const LoginPage = () => {
     try {
       setSubmitting(true);
       setErrors({});
-      await login(form.email, form.password);
+      setStatusMessage('Connecting to server...');
+
+      await executeWithColdStartRetry(
+        () => login(form.email, form.password),
+        (notice) => setStatusMessage(notice)
+      );
+
       navigate('/dashboard', { replace: true });
     } catch (error) {
       console.error('Login error:', error);
@@ -65,6 +73,7 @@ const LoginPage = () => {
       showToast(msg, 'error');
     } finally {
       setSubmitting(false);
+      setStatusMessage('');
     }
   };
 
@@ -80,7 +89,11 @@ const LoginPage = () => {
           <Button type="submit" className="btn-primary" disabled={submitting}>
             {submitting ? 'Logging in…' : 'Login'}
           </Button>
-          {submitting && <p className="muted text-sm text-center" style={{ marginTop: '0.5rem' }}>Connecting to server (cold start may take ~20s if idle)...</p>}
+          {submitting && (
+            <p className="muted text-sm text-center" style={{ marginTop: '0.5rem' }}>
+              {statusMessage || 'Connecting to server...'}
+            </p>
+          )}
         </form>
         <p className="switch-copy">
           New here? <Link to="/register">Create an account</Link>
