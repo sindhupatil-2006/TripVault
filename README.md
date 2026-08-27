@@ -257,7 +257,7 @@ CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 ## 📖 API Endpoints Reference
 
 ### Health Check
-- `GET /health` - Server health ping (`{ "status": "ok" }`)
+- `GET /health` - Server & Database health status (`{ "success": true, "message": "TripVault server is running", "database": "connected" }`)
 
 ### Authentication (`/api/auth`)
 - `POST /api/auth/register` - Create user account
@@ -293,7 +293,7 @@ CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 
 ---
 
-## ✅ Week 4 Deliverables Verification Checklist
+## ✅ Deliverables Verification Checklist
 
 | Deliverable | Requirement | Status |
 | :--- | :--- | :--- |
@@ -306,7 +306,7 @@ CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 | **7. Production API** | `client/src/api.js` points to `VITE_API_URL` without production localhost lock | ✅ PASS |
 | **8. Vercel SPA Routing** | `client/vercel.json` rewrites `/login`, `/register`, `/profile/*` cleanly | ✅ PASS |
 | **9. Secrets Hygiene** | No passwords, secrets, or keys committed in repo or `.env.example` | ✅ PASS |
-| **10. README Documentation**| Complete Week 4 production documentation with feature matrix & live links | ✅ PASS |
+| **10. README Documentation**| Complete production documentation with feature matrix & live links | ✅ PASS |
 
 ---
 
@@ -322,7 +322,7 @@ PHOTO UPLOAD: PASS
 PROFILE: PASS
 PUBLIC PROFILE: PASS
 LOGOUT: PASS
-RENDER HEALTH: PASS (status: ok)
+RENDER HEALTH: PASS (database: connected)
 ```
 
 ---
@@ -338,4 +338,4 @@ RENDER HEALTH: PASS (status: ok)
 
 ## 📜 Credits & License
 
-Developed for the **CodGen Virtual Internship Program (Week 4 Final Deliverable)** by **Sindhu Patil**.
+Developed for the **TripVault Project** by **Sindhu Patil**.
