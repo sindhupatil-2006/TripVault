@@ -50,12 +50,16 @@ const RegisterPage = () => {
     } catch (error) {
       console.error('Registration error:', error);
       let msg = 'Registration failed';
-      if (error.response?.data?.message) {
+      if (error.response?.status === 503 || error.response?.headers?.['x-render-routing'] === 'hibernate-wake-error') {
+        msg = 'Backend server is waking up from sleep. Please wait ~10 seconds and try again.';
+      } else if (error.response?.data?.message) {
         msg = error.response.data.message;
       } else if (Array.isArray(error.response?.data?.errors)) {
         msg = error.response.data.errors.map((e) => e.msg).join('. ');
+      } else if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+        msg = 'Server connection timed out while starting up. Please click Register again.';
       } else if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
-        msg = 'Backend server is starting up or unreachable. Please wait a few seconds and try again.';
+        msg = 'Cannot reach server. Backend may be starting up. Please try again.';
       } else if (error.message) {
         msg = error.message;
       }
@@ -80,7 +84,7 @@ const RegisterPage = () => {
           <Button type="submit" className="btn-primary" disabled={submitting}>
             {submitting ? 'Registering…' : 'Register'}
           </Button>
-          {submitting && <p className="muted text-sm text-center" style={{ marginTop: '0.5rem' }}>Connecting to server (cold start may take ~30s if idle)...</p>}
+          {submitting && <p className="muted text-sm text-center" style={{ marginTop: '0.5rem' }}>Connecting to server (cold start may take ~20s if idle)...</p>}
         </form>
         <p className="switch-copy">
           Already have an account? <Link to="/login">Login</Link>
