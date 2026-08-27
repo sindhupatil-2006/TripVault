@@ -1,8 +1,16 @@
 const bcrypt = require('bcryptjs');
+const mongoose = require('mongoose');
 const { validationResult } = require('express-validator');
 const User = require('../models/User');
+const connectDB = require('../config/db');
 const generateToken = require('../utils/generateToken');
 const { generateUniqueUsername } = require('../utils/username');
+
+const ensureDbConnected = async () => {
+  if (mongoose.connection.readyState !== 1) {
+    await connectDB();
+  }
+};
 
 const ensureProfileFields = async (user) => {
   if (!user) {
@@ -28,6 +36,7 @@ const registerUser = async (req, res, next) => {
       return res.status(400).json({ success: false, errors: errors.array() });
     }
 
+    await ensureDbConnected();
     const { name, email, password } = req.body;
 
     const existingUser = await User.findOne({ email });
@@ -58,6 +67,7 @@ const loginUser = async (req, res, next) => {
       return res.status(400).json({ success: false, errors: errors.array() });
     }
 
+    await ensureDbConnected();
     const { email, password } = req.body;
     let user = await User.findOne({ email });
 
@@ -91,6 +101,7 @@ const loginUser = async (req, res, next) => {
 
 const getMe = async (req, res, next) => {
   try {
+    await ensureDbConnected();
     const user = await ensureProfileFields(req.user);
     res.status(200).json({ success: true, user: {
       id: user._id,
