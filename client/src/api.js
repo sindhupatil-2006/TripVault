@@ -2,12 +2,17 @@ import axios from 'axios';
 
 const getBaseUrl = () => {
   const envUrl = import.meta.env.VITE_API_URL;
-  if (envUrl && envUrl.trim()) {
+  if (
+    envUrl &&
+    envUrl.trim() &&
+    !envUrl.includes('wvx1') &&
+    !envUrl.includes('backendre')
+  ) {
     const cleanUrl = envUrl.trim().replace(/\/+$/, '');
     return cleanUrl.endsWith('/api') ? cleanUrl : `${cleanUrl}/api`;
   }
 
-  // Fallback for production build on Vercel if VITE_API_URL is not set
+  // Production backend URL
   if (import.meta.env.PROD) {
     return 'https://tripvault-backend.onrender.com/api';
   }
