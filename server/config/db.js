@@ -4,8 +4,9 @@ const connectDB = async () => {
   const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI;
 
   if (!mongoUri || !mongoUri.trim()) {
-    console.error('CRITICAL DATABASE ERROR: MONGODB_URI/MONGO_URI environment variable is missing');
-    throw new Error('MONGODB_URI/MONGO_URI environment variable is missing');
+    console.error('⚠️ WARNING: Neither MONGODB_URI nor MONGO_URI is defined in process.env.');
+    console.error('Please configure MONGO_URI in your Render Web Service Environment settings.');
+    return false;
   }
 
   try {
@@ -13,11 +14,11 @@ const connectDB = async () => {
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
     });
-    console.log(`MongoDB connected: ${conn.connection.host}`);
+    console.log(`MongoDB connected successfully: ${conn.connection.host}`);
     return conn;
   } catch (error) {
-    console.error('MongoDB connection failed:', error.message);
-    throw error;
+    console.error('MongoDB connection error:', error.message);
+    return false;
   }
 };
 

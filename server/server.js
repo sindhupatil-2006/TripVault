@@ -55,10 +55,15 @@ app.use(express.urlencoded({ extended: true }));
 
 app.get('/health', (req, res) => {
   const isDbConnected = mongoose.connection.readyState === 1;
+
+  if (!isDbConnected && mongoose.connection.readyState === 0) {
+    connectDB().catch(() => {});
+  }
+
   res.status(200).json({
     success: true,
     message: 'TripVault server is running',
-    database: isDbConnected ? 'connected' : 'connecting',
+    database: isDbConnected ? 'connected' : 'disconnected',
   });
 });
 
@@ -68,21 +73,23 @@ app.use('/api/users', userRoutes);
 
 app.use(errorHandler);
 
-const startServer = async () => {
+const startServer = () => {
   try {
-    await connectDB();
     const server = app.listen(PORT, '0.0.0.0', () => {
       console.log(`TripVault server running on port ${PORT}`);
     });
 
     server.on('error', (error) => {
       if (error.code === 'EADDRINUSE') {
-        console.error(`Port ${PORT} is already in use. Please stop the running server or set a different PORT in your environment.`);
+        console.error(`Port ${PORT} is already in use.`);
         process.exit(1);
       }
-
       console.error('Server error:', error);
       process.exit(1);
+    });
+
+    connectDB().catch((err) => {
+      console.error('Initial database connection attempt failed:', err.message);
     });
   } catch (error) {
     console.error('Failed to start server:', error);
