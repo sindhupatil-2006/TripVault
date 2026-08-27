@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Input from '../components/Input';
 import Button from '../components/Button';
@@ -8,8 +8,14 @@ const RegisterPage = () => {
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
-  const { register, showToast } = useAuth();
+  const { user, register, showToast } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, navigate]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -39,10 +45,21 @@ const RegisterPage = () => {
       setSubmitting(true);
       setErrors({});
       await register(form.name, form.email, form.password);
+      showToast('Registration successful! Please log in.', 'success');
       navigate('/login');
     } catch (error) {
       console.error('Registration error:', error);
-      const msg = error.response?.data?.message || (error.code === 'ERR_NETWORK' || error.message === 'Network Error' ? 'Backend server is starting up or unreachable. Please wait a few seconds and try again.' : 'Registration failed');
+      let msg = 'Registration failed';
+      if (error.response?.data?.message) {
+        msg = error.response.data.message;
+      } else if (Array.isArray(error.response?.data?.errors)) {
+        msg = error.response.data.errors.map((e) => e.msg).join('. ');
+      } else if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
+        msg = 'Backend server is starting up or unreachable. Please wait a few seconds and try again.';
+      } else if (error.message) {
+        msg = error.message;
+      }
+
       setErrors({ form: msg });
       showToast(msg, 'error');
     } finally {
@@ -63,6 +80,7 @@ const RegisterPage = () => {
           <Button type="submit" className="btn-primary" disabled={submitting}>
             {submitting ? 'Registering…' : 'Register'}
           </Button>
+          {submitting && <p className="muted text-sm text-center" style={{ marginTop: '0.5rem' }}>Connecting to server (cold start may take ~30s if idle)...</p>}
         </form>
         <p className="switch-copy">
           Already have an account? <Link to="/login">Login</Link>
