@@ -14,14 +14,8 @@ const { errorHandler } = require('./middleware/errorMiddleware');
 const app = express();
 const PORT = Number(process.env.PORT || 5000);
 
-const corsOptions = {
-  origin: true, // Allow all origins for seamless production Vercel frontend access
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-};
-
-app.use(cors(corsOptions));
+// Use standard unrestricted CORS middleware so browsers never block cross-origin requests
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
