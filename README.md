@@ -9,8 +9,8 @@ TripVault is a full-stack, production-ready MERN (MongoDB, Express.js, React, No
 | Service | Environment | Live URL |
 | :--- | :--- | :--- |
 | **Frontend App** | Vercel (Production) | [https://trip-vault-olive.vercel.app](https://trip-vault-olive.vercel.app) |
-| **Backend API** | Render (Production) | [https://tripvault-backend.onrender.com](https://tripvault-backend.onrender.com) |
-| **API Health Check** | Render | [https://tripvault-backend.onrender.com/health](https://tripvault-backend.onrender.com/health) |
+| **Backend API** | Render (Production) | [https://tripvault-backendre.onrender.com](https://tripvault-backendre.onrender.com) |
+| **API Health Check** | Render | [https://tripvault-backendre.onrender.com/health](https://tripvault-backendre.onrender.com/health) |
 
 ---
 
@@ -231,7 +231,7 @@ npm run dev
 ### Client Environment (`/client/.env.example`)
 ```env
 # Production backend API URL (Render)
-VITE_API_URL=https://tripvault-backend.onrender.com/api
+VITE_API_URL=https://tripvault-backendre.onrender.com/api
 ```
 
 ### Server Environment (`/server/.env.example`)
@@ -288,7 +288,7 @@ CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 ### 2. Frontend Application (Vercel)
 1. Import `sindhupatil-2006/TripVault` into Vercel.
 2. Root Directory: `client`. Framework: `Vite`. Build Command: `npm run build`. Output Directory: `dist`.
-3. Add Environment Variable: `VITE_API_URL = https://tripvault-backend.onrender.com/api`.
+3. Add Environment Variable: `VITE_API_URL = https://tripvault-backendre.onrender.com/api`.
 4. Ensure `client/vercel.json` SPA rewrite is active to support direct route navigation.
 
 ---
