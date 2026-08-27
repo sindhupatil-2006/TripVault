@@ -20,20 +20,24 @@ export const isColdStartError = (error) => {
 
 /**
  * Executes an async API call with automatic retries if a cold-start transient error occurs.
- * Max retries: 5 attempts x 3 seconds = 15s total coverage for Render cold starts.
+ * Max retries: 15 attempts x 5 seconds = 75s total coverage for Render 50s+ cold starts.
  */
-export const executeWithColdStartRetry = async (requestFn, onRetryNotice, maxRetries = 5) => {
+export const executeWithColdStartRetry = async (requestFn, onRetryNotice, maxRetries = 15) => {
   let attempt = 0;
+  const intervalMs = 5000;
+
   while (attempt <= maxRetries) {
     try {
-      return await requestFn();
+      return await requestFn(); // Exit immediately once server responds
     } catch (error) {
       if (isColdStartError(error) && attempt < maxRetries) {
         attempt += 1;
         if (onRetryNotice) {
-          onRetryNotice(`Backend server is spinning up. Retrying connection (${attempt}/${maxRetries})...`);
+          onRetryNotice(
+            `Waking up the server — this can take up to a minute on first load... (attempt ${attempt}/${maxRetries})`
+          );
         }
-        await new Promise((resolve) => setTimeout(resolve, 3000));
+        await new Promise((resolve) => setTimeout(resolve, intervalMs));
       } else {
         throw error;
       }
