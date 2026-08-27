@@ -53,6 +53,14 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.get('/', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'TripVault API server is running',
+    health: '/health',
+  });
+});
+
 app.get('/health', (req, res) => {
   const isDbConnected = mongoose.connection.readyState === 1;
 
