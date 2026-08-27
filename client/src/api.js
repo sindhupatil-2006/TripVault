@@ -2,19 +2,14 @@ import axios from 'axios';
 
 const getBaseUrl = () => {
   const envUrl = import.meta.env.VITE_API_URL;
-  if (
-    envUrl &&
-    envUrl.trim() &&
-    !envUrl.includes('wvx1') &&
-    !envUrl.includes('backendre')
-  ) {
+  if (envUrl && envUrl.trim()) {
     const cleanUrl = envUrl.trim().replace(/\/+$/, '');
     return cleanUrl.endsWith('/api') ? cleanUrl : `${cleanUrl}/api`;
   }
 
-  // Production backend URL
+  // Primary live Render backend URL from Dashboard logs
   if (import.meta.env.PROD) {
-    return 'https://tripvault-backend.onrender.com/api';
+    return 'https://tripvault-backend-wvx1.onrender.com/api';
   }
 
   return 'http://localhost:5000/api';
