@@ -19,20 +19,23 @@ export const isColdStartError = (error) => {
 };
 
 /**
- * Executes an async API call with a single automatic retry if a cold-start transient error occurs.
+ * Executes an async API call with automatic retries if a cold-start transient error occurs.
  */
-export const executeWithColdStartRetry = async (requestFn, onRetryNotice) => {
-  try {
-    return await requestFn();
-  } catch (error) {
-    if (isColdStartError(error)) {
-      if (onRetryNotice) {
-        onRetryNotice('Server is waking up from sleep. Retrying connection automatically...');
-      }
-      // Wait 3 seconds for container boot before retrying once
-      await new Promise((resolve) => setTimeout(resolve, 3000));
+export const executeWithColdStartRetry = async (requestFn, onRetryNotice, maxRetries = 2) => {
+  let attempt = 0;
+  while (attempt <= maxRetries) {
+    try {
       return await requestFn();
+    } catch (error) {
+      if (isColdStartError(error) && attempt < maxRetries) {
+        attempt += 1;
+        if (onRetryNotice) {
+          onRetryNotice(`Backend server is spinning up. Retrying connection (${attempt}/${maxRetries})...`);
+        }
+        await new Promise((resolve) => setTimeout(resolve, 2500));
+      } else {
+        throw error;
+      }
     }
-    throw error;
   }
 };
