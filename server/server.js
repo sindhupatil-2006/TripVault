@@ -16,6 +16,7 @@ const PORT = Number(process.env.PORT || 5000);
 
 const allowedOrigins = [
   'https://tripvault-client.vercel.app',
+  'https://trip-vault-olive.vercel.app',
   'http://localhost:5173',
   'http://localhost:3000',
   'http://localhost:5000',
@@ -70,7 +71,7 @@ app.use(errorHandler);
 const startServer = async () => {
   try {
     await connectDB();
-    const server = app.listen(PORT, () => {
+    const server = app.listen(PORT, '0.0.0.0', () => {
       console.log(`TripVault server running on port ${PORT}`);
     });
 
