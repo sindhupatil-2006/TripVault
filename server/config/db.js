@@ -1,16 +1,13 @@
 const mongoose = require('mongoose');
 
-const connectDB = async () => {
-  const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI;
+const DEFAULT_ATLAS_URI = 'mongodb+srv://sindhupatil3101_db_user:TripVault2026!@cluster0.scwsucw.mongodb.net/tripvault?retryWrites=true&w=majority';
 
-  if (!mongoUri || !mongoUri.trim()) {
-    console.error('⚠️ WARNING: Neither MONGODB_URI nor MONGO_URI is defined in process.env.');
-    console.error('Please configure MONGO_URI in your Render Web Service Environment settings.');
-    return false;
-  }
+const connectDB = async () => {
+  const rawUri = process.env.MONGODB_URI || process.env.MONGO_URI || DEFAULT_ATLAS_URI;
+  const mongoUri = rawUri ? rawUri.trim() : DEFAULT_ATLAS_URI;
 
   try {
-    const conn = await mongoose.connect(mongoUri.trim(), {
+    const conn = await mongoose.connect(mongoUri, {
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
     });
