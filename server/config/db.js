@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const DEFAULT_ATLAS_URI = 'mongodb+srv://sindhupatil3101_db_user:TripVault2026!@cluster0.scwsucw.mongodb.net/tripvault?retryWrites=true&w=majority';
+const DEFAULT_ATLAS_URI = 'mongodb+srv://sindhupatil3101_db_user:TripVault2026%21@cluster0.scwsucw.mongodb.net/tripvault?retryWrites=true&w=majority';
 
 const connectDB = async () => {
   const rawUri = process.env.MONGODB_URI || process.env.MONGO_URI || DEFAULT_ATLAS_URI;
